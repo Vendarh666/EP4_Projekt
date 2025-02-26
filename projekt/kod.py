@@ -29,6 +29,13 @@ def draw_text(text, font, color, x, y):
     text_rect = text_surface.get_rect(center=(x, y))
     game_window.blit(text_surface, text_rect)
 
+def draw_background():
+    # Drawing white lines for the grid
+    for x in range(0, window_x, 20):  # Vertical lines
+        pygame.draw.line(game_window, dark_gray, (x, 0), (x, window_y), 1)
+    for y in range(0, window_y, 20):  # Horizontal lines
+        pygame.draw.line(game_window, dark_gray, (0, y), (window_x, y), 1)
+
 def main_menu():
     font = pygame.font.SysFont('comicsansms', 35)
     while True:
@@ -60,14 +67,14 @@ def game_over_screen(score):
                 quit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
-                    return False
+                    return False  # Return False to restart the game
                 if event.key == pygame.K_q:
                     pygame.quit()
                     quit()
 
 def game_loop():
     while True:
-        # Inicializace hada
+        # Inicializace hada - restartování
         snake_position = [100, 50]
         snake_body = [[100, 50], [90, 50], [80, 50], [70, 50]]
         direction = 'RIGHT'
@@ -129,9 +136,10 @@ def game_loop():
             
             # Vykreslení objektů
             game_window.fill(black)
+            draw_background()  # Draw the grid background
             for pos in snake_body:
                 pygame.draw.rect(game_window, green, pygame.Rect(pos[0], pos[1], 10, 10))
-            pygame.draw.rect(game_window, white, pygame.Rect(fruit_position[0], fruit_position[1], 10, 10))
+            pygame.draw.rect(game_window, red, pygame.Rect(fruit_position[0], fruit_position[1], 10, 10))
             
             # Podmínky pro konec hry
             if snake_position[0] < 0 or snake_position[0] >= window_x or \
@@ -153,4 +161,4 @@ def game_loop():
 # Spuštění hry
 main_menu()
 while True:
-    game_loop()
+    game_loop()  # Game loop will start fresh after game over and restarting
