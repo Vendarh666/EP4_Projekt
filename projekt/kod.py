@@ -6,8 +6,8 @@ import random
 pygame.init()
 
 # Nastavení okna
-window_x = 720
-window_y = 480
+window_x = 450
+window_y = 400
 game_window = pygame.display.set_mode((window_x, window_y))
 pygame.display.set_caption('Snake Game')
 
@@ -17,6 +17,8 @@ white = (255, 255, 255)
 red = (255, 0, 0)
 green = (0, 255, 0)
 blue = (0, 0, 255)
+yellow = (255, 255, 0)
+dark_gray = (50, 50, 50)
 
 # FPS
 fps = pygame.time.Clock()
@@ -28,10 +30,11 @@ def draw_text(text, font, color, x, y):
     game_window.blit(text_surface, text_rect)
 
 def main_menu():
-    font = pygame.font.SysFont('times new roman', 40)
+    font = pygame.font.SysFont('comicsansms', 35)
     while True:
-        game_window.fill(black)
-        draw_text("Press SPACE to Start", font, white, window_x // 2, window_y // 2)
+        game_window.fill(dark_gray)
+        draw_text("SNAKE GAME", font, yellow, window_x // 2, window_y // 4)
+        draw_text("Press SPACE to Play", font, white, window_x // 2, window_y // 2)
         pygame.display.update()
         
         for event in pygame.event.get():
@@ -43,11 +46,12 @@ def main_menu():
                     return
 
 def game_over_screen(score):
-    font = pygame.font.SysFont('times new roman', 40)
+    font = pygame.font.SysFont('comicsansms', 30)
     while True:
-        game_window.fill(black)
-        draw_text(f"Game Over! Score: {score}", font, red, window_x // 2, window_y // 3)
-        draw_text("Press R to Restart or Q to Quit", font, white, window_x // 2, window_y // 2)
+        game_window.fill(dark_gray)
+        draw_text("Game Over!", font, red, window_x // 2, window_y // 4)
+        draw_text(f"Score: {score}", font, yellow, window_x // 2, window_y // 3)
+        draw_text("R = restart | Q = quit", font, white, window_x // 2, window_y // 2)
         pygame.display.update()
         
         for event in pygame.event.get():
@@ -113,7 +117,7 @@ def game_loop():
             # Logika růstu hada
             snake_body.insert(0, list(snake_position))
             if snake_position == fruit_position:
-                score += 10
+                score += 1
                 fruit_spawn = False
             else:
                 snake_body.pop()
@@ -140,8 +144,8 @@ def game_loop():
                         break
             
             # Zobrazení skóre
-            font = pygame.font.SysFont('times new roman', 20)
-            draw_text(f"Score: {score}", font, white, 60, 20)
+            font = pygame.font.SysFont('comicsansms', 20)
+            draw_text(f"Score: {score}", font, yellow, 60, 20)
             
             pygame.display.update()
             fps.tick(snake_speed)
