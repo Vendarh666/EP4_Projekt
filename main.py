@@ -1,4 +1,2 @@
 print("ahoj")
-print("bye")
-
-"ahoj"
+print("love you")
