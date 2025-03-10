@@ -16,6 +16,7 @@ black = (0, 0, 0)
 white = (255, 255, 255)
 red = (255, 0, 0)
 green = (0, 255, 0)
+blue = (0, 0, 255)
 yellow = (255, 255, 0)
 dark_gray = (50, 50, 50)
 
@@ -29,9 +30,10 @@ def draw_text(text, font, color, x, y):
     game_window.blit(text_surface, text_rect)
 
 def draw_background():
-    for x in range(0, window_x, 20):
+    # Drawing white lines for the grid
+    for x in range(0, window_x, 20):  # Vertical lines
         pygame.draw.line(game_window, dark_gray, (x, 0), (x, window_y), 1)
-    for y in range(0, window_y, 20):
+    for y in range(0, window_y, 20):  # Horizontal lines
         pygame.draw.line(game_window, dark_gray, (0, y), (window_x, y), 1)
 
 def main_menu():
@@ -65,18 +67,20 @@ def game_over_screen(score):
                 quit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
-                    return True  # Indikace restartu
+                    return False  # Return False to restart the game
                 if event.key == pygame.K_q:
                     pygame.quit()
                     quit()
 
 def game_loop():
     while True:
+        # Inicializace hada - restartování
         snake_position = [100, 50]
         snake_body = [[100, 50], [90, 50], [80, 50], [70, 50]]
         direction = 'RIGHT'
         change_to = direction
         
+        # Inicializace jídla
         fruit_position = [random.randrange(1, (window_x//10)) * 10, 
                           random.randrange(1, (window_y//10)) * 10]
         fruit_spawn = True
@@ -97,6 +101,7 @@ def game_loop():
                     if event.key == pygame.K_RIGHT:
                         change_to = 'RIGHT'
             
+            # Zabránění otočení do protisměru
             if change_to == 'UP' and direction != 'DOWN':
                 direction = 'UP'
             if change_to == 'DOWN' and direction != 'UP':
@@ -106,6 +111,7 @@ def game_loop():
             if change_to == 'RIGHT' and direction != 'LEFT':
                 direction = 'RIGHT'
             
+            # Pohyb hada
             if direction == 'UP':
                 snake_position[1] -= 10
             if direction == 'DOWN':
@@ -115,6 +121,7 @@ def game_loop():
             if direction == 'RIGHT':
                 snake_position[0] += 10
             
+            # Logika růstu hada
             snake_body.insert(0, list(snake_position))
             if snake_position == fruit_position:
                 score += 1
@@ -127,28 +134,31 @@ def game_loop():
                                   random.randrange(1, (window_y//10)) * 10]
             fruit_spawn = True
             
+            # Vykreslení objektů
             game_window.fill(black)
-            draw_background()
+            draw_background()  # Draw the grid background
             for pos in snake_body:
                 pygame.draw.rect(game_window, green, pygame.Rect(pos[0], pos[1], 10, 10))
             pygame.draw.rect(game_window, red, pygame.Rect(fruit_position[0], fruit_position[1], 10, 10))
             
+            # Podmínky pro konec hry
             if snake_position[0] < 0 or snake_position[0] >= window_x or \
                snake_position[1] < 0 or snake_position[1] >= window_y:
-                if game_over_screen(score):
-                    break  # Restart celé hry
-            
+                if not game_over_screen(score):
+                    break
             for block in snake_body[1:]:
                 if snake_position == block:
-                    if game_over_screen(score):
-                        break  # Restart celé hry
+                    if not game_over_screen(score):
+                        break
             
+            # Zobrazení skóre
             font = pygame.font.SysFont('comicsansms', 20)
             draw_text(f"Score: {score}", font, yellow, 60, 20)
             
             pygame.display.update()
             fps.tick(snake_speed)
 
+# Spuštění hry
 main_menu()
 while True:
-    game_loop()
+    game_loop()  # Game loop will start fresh after game over and restarting
