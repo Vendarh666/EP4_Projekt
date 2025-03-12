@@ -20,6 +20,7 @@ green = (0, 255, 0)
 yellow = (255, 255, 0)
 dark_gray = (50, 50, 50)
 
+
 # Nastavení FPS a rychlosti hada
 fps = pygame.time.Clock()
 snake_speed = 10
@@ -36,6 +37,11 @@ def draw_background():
         pygame.draw.line(game_window, dark_gray, (x, 0), (x, window_y), 1)
     for y in range(0, window_y, 20):
         pygame.draw.line(game_window, dark_gray, (0, y), (window_x, y), 1)
+
+# Funkce pro vykreslení rámečku kolem herního okna
+def draw_frame():
+    # Vykreslení rámečku
+    pygame.draw.rect(game_window, dark_gray, pygame.Rect(10, 10, window_x - 20, window_y - 20), 5)
 
 # Funkce pro vykreslení hada s grafikou
 def draw_snake(snake_body):
@@ -95,8 +101,8 @@ def game_loop():
         change_to = direction
         
         # Inicializace jídla
-        fruit_position = [random.randrange(1, (window_x//10)) * 10, 
-                          random.randrange(1, (window_y//10)) * 10]
+        fruit_position = [random.randrange(3, (window_x//10) - 3) * 10, 
+                          random.randrange(3, (window_y//10) - 3) * 10]
         fruit_spawn = True
         score = 0
         
@@ -144,19 +150,20 @@ def game_loop():
                 snake_body.pop()
             
             if not fruit_spawn:
-                fruit_position = [random.randrange(1, (window_x//10)) * 10, 
-                                  random.randrange(1, (window_y//10)) * 10]
+                fruit_position = [random.randrange(3, (window_x//10) - 3) * 10, 
+                                  random.randrange(3, (window_y//10) - 3) * 10]
             fruit_spawn = True
             
             # Vykreslení hry
             game_window.fill(black)
             draw_background()
+            draw_frame()  # Vykreslíme rámeček
             draw_snake(snake_body)  # Vykreslíme hada s novým vzhledem
             pygame.draw.rect(game_window, red, pygame.Rect(fruit_position[0], fruit_position[1], 10, 10))
             
             # Podmínky pro konec hry
-            if snake_position[0] < 0 or snake_position[0] >= window_x or \
-               snake_position[1] < 0 or snake_position[1] >= window_y or \
+            if snake_position[0] < 20 or snake_position[0] >= window_x - 20 or \
+               snake_position[1] < 20 or snake_position[1] >= window_y - 20 or \
                snake_position in snake_body[1:]:
                 game_over_screen(score)
                 break  # Ukončení aktuální hry a restart
@@ -166,7 +173,7 @@ def game_loop():
             draw_text(f"Score: {score}", font, yellow, 60, 20)
             
             pygame.display.update()
-            fps.tick(snake_speed)
+            fps.tick(snake_speed)  # Nastavení FPS pro plynulost pohybu
 
 # Spuštění hlavního menu
 main_menu()
