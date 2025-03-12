@@ -37,6 +37,16 @@ def draw_background():
     for y in range(0, window_y, 20):
         pygame.draw.line(game_window, dark_gray, (0, y), (window_x, y), 1)
 
+# Funkce pro vykreslení hada s grafikou
+def draw_snake(snake_body):
+    for i, pos in enumerate(snake_body):
+        if i == 0:  # Hlava hada
+            pygame.draw.circle(game_window, green, (pos[0] + 5, pos[1] + 5), 7)  # Zaoblená hlava
+            pygame.draw.circle(game_window, white, (pos[0] + 2, pos[1] + 2), 2)  # Levé oko
+            pygame.draw.circle(game_window, white, (pos[0] + 8, pos[1] + 2), 2)  # Pravé oko
+        else:
+            pygame.draw.circle(game_window, (0, 200, 0), (pos[0] + 5, pos[1] + 5), 5)  # Tělo
+
 # Funkce pro zobrazení hlavního menu
 def main_menu():
     font = pygame.font.SysFont('comicsansms', 35)
@@ -141,8 +151,7 @@ def game_loop():
             # Vykreslení hry
             game_window.fill(black)
             draw_background()
-            for pos in snake_body:
-                pygame.draw.rect(game_window, green, pygame.Rect(pos[0], pos[1], 10, 10))
+            draw_snake(snake_body)  # Vykreslíme hada s novým vzhledem
             pygame.draw.rect(game_window, red, pygame.Rect(fruit_position[0], fruit_position[1], 10, 10))
             
             # Podmínky pro konec hry
