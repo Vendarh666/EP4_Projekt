@@ -40,8 +40,7 @@ def draw_background():
 
 # Funkce pro vykreslení rámečku kolem herního okna
 def draw_frame():
-    # Vykreslení rámečku
-    pygame.draw.rect(game_window, dark_gray, pygame.Rect(10, 10, window_x - 20, window_y - 20), 5)
+    pygame.draw.rect(game_window, dark_gray, pygame.Rect(0, 0, window_x, window_y), 18)
 
 # Funkce pro vykreslení hada s grafikou
 def draw_snake(snake_body):
@@ -144,7 +143,10 @@ def game_loop():
             # Přidání nové hlavy hada
             snake_body.insert(0, list(snake_position))
             if snake_position == fruit_position:
-                score += 1
+                if score >= 30:
+                    score += 10
+                else:
+                    score += 1
                 fruit_spawn = False
             else:
                 snake_body.pop()
@@ -179,3 +181,4 @@ def game_loop():
 main_menu()
 while True:
     game_loop()
+    
