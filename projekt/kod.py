@@ -163,7 +163,10 @@ def game_loop():
             draw_background()
             draw_frame()
             draw_snake(snake_body)
-            pygame.draw.rect(game_window, red, pygame.Rect(fruit_position[0], fruit_position[1], 10, 10))
+            # Vykreslení jablka
+            pygame.draw.circle(game_window, red, (fruit_position[0] + 5, fruit_position[1] + 5), 5)  # Tělo jablka
+            pygame.draw.line(game_window, (139, 69, 19), (fruit_position[0] + 5, fruit_position[1]), (fruit_position[0] + 5, fruit_position[1] - 4), 2)  # Stopka
+
             
             if snake_position[0] < 20 or snake_position[0] >= window_x - 20 or \
                snake_position[1] < 20 or snake_position[1] >= window_y - 20 or \
