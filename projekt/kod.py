@@ -97,8 +97,19 @@ def game_over_screen(score):
                 if event.key == pygame.K_q:
                     pygame.quit()
                     quit()
+# Přidání proměnné pro zlaté jablko
+golden_fruit_position = None
+golden_fruit_spawn = False
+golden_fruit_timer = 0
+golden_fruit_duration = 10  # Trvání efektu zlatého jablka (v sekundách)
+original_snake_speed = snake_speed  # Uložení původní rychlosti hada
+
+# Přidání proměnných pro životnost zlatého jablka
+golden_fruit_lifetime = 0  # Maximální doba existence zlatého jablka (v sekundách)
+golden_fruit_spawn_time = 0  # Čas, kdy bylo zlaté jablko vygenerováno
 
 def game_loop():
+    global snake_speed
     while True:
         snake_position = [100, 50]
         snake_body = [[100, 50], [90, 50], [80, 50], [70, 50]]
@@ -109,6 +120,13 @@ def game_loop():
                           random.randrange(3, (window_y//10) - 3) * 10]
         fruit_spawn = True
         score = 0
+        
+        golden_fruit_position = None
+        golden_fruit_spawn = False
+        golden_fruit_timer = 0
+        original_snake_speed = snake_speed
+        golden_fruit_lifetime = 0
+        golden_fruit_spawn_time = 0
         
         while True:
             for event in pygame.event.get():
@@ -146,10 +164,7 @@ def game_loop():
             # Přidání nové hlavy hada
             snake_body.insert(0, list(snake_position))
             if snake_position == fruit_position:
-                if score >= 30:
-                    score += 10
-                else:
-                    score += 1
+                score += 1
                 fruit_spawn = False
             else:
                 snake_body.pop()
@@ -158,19 +173,52 @@ def game_loop():
                 fruit_position = [random.randrange(3, (window_x//10) - 3) * 10, 
                                   random.randrange(3, (window_y//10) - 3) * 10]
             fruit_spawn = True
+
+            # Generování zlatého jablka (nižší šance, 5 %)
+            if not golden_fruit_spawn and random.randint(1, 1000) <= 10:  # 5% šance na zlaté jablko
+                golden_fruit_position = [random.randrange(3, (window_x//10) - 3) * 10, 
+                                         random.randrange(3, (window_y//10) - 3) * 10]
+                golden_fruit_spawn = True
+                golden_fruit_spawn_time = time.time()
+                golden_fruit_lifetime = random.randint(5, 15)  # Životnost 5 až 15 sekund
+            
+            # Kontrola, zda zlaté jablko vypršelo
+            if golden_fruit_spawn and time.time() - golden_fruit_spawn_time > golden_fruit_lifetime:
+                golden_fruit_spawn = False
+            
+            # Kontrola, zda had snědl zlaté jablko
+            if golden_fruit_spawn and snake_position == golden_fruit_position:
+                snake_speed += 10  # Zvýšení rychlosti hada
+                golden_fruit_spawn = False
+                golden_fruit_timer = time.time()
+            
+            # Reset rychlosti po uplynutí trvání efektu zlatého jablka
+            if golden_fruit_timer and time.time() - golden_fruit_timer > 10:
+                snake_speed = original_snake_speed
+                golden_fruit_timer = 0
             
             game_window.fill(black)
             draw_background()
             draw_frame()
             draw_snake(snake_body)
-            # Vykreslení jablka
-            pygame.draw.circle(game_window, red, (fruit_position[0] + 5, fruit_position[1] + 5), 5)  # Tělo jablka
-            pygame.draw.line(game_window, (139, 69, 19), (fruit_position[0] + 5, fruit_position[1]), (fruit_position[0] + 5, fruit_position[1] - 4), 2)  # Stopka
-
             
+            # Normální jablko
+            pygame.draw.circle(game_window, red, (fruit_position[0] + 5, fruit_position[1] + 5), 5)
+            pygame.draw.line(game_window, (139, 69, 19), 
+                             (fruit_position[0] + 5, fruit_position[1]), 
+                             (fruit_position[0] + 5, fruit_position[1] - 4), 2)
+
+            # Zlaté jablko
+            if golden_fruit_spawn:
+                pygame.draw.circle(game_window, yellow, (golden_fruit_position[0] + 5, golden_fruit_position[1] + 5), 5)
+                pygame.draw.line(game_window, (139, 69, 19), 
+                                 (golden_fruit_position[0] + 5, golden_fruit_position[1]), 
+                                 (golden_fruit_position[0] + 5, golden_fruit_position[1] - 4), 2)
+
             if snake_position[0] < 20 or snake_position[0] >= window_x - 20 or \
                snake_position[1] < 20 or snake_position[1] >= window_y - 20 or \
                snake_position in snake_body[1:]:
+                snake_speed = original_snake_speed
                 game_over_screen(score)
                 break  
             
@@ -179,6 +227,7 @@ def game_loop():
             
             pygame.display.update()
             fps.tick(snake_speed)
+
 
 main_menu()
 while True:
