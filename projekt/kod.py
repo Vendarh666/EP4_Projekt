@@ -173,7 +173,10 @@ def game_loop():
             # Přidání nové hlavy hada
             snake_body.insert(0, list(snake_position))
             if snake_position == fruit_position:
-                score += 1
+                if score >= 30:
+                    score += 10
+                else:
+                    score += 1
                 fruit_spawn = False
 
                 # Přidání překážky při dosažení skóre násobku 50
