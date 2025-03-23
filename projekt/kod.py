@@ -1,6 +1,7 @@
 import pygame
 import time
 import random
+import sqlite3
 
 # Inicializace Pygame
 pygame.init()
@@ -23,8 +24,30 @@ dark_gray = (50, 50, 50)
 fps = pygame.time.Clock()
 snake_speed = 10
 
-# Seznam pro nejlepší skóre
-best_scores = [0, 0, 0]
+# Připojení k databázi SQLite3
+conn = sqlite3.connect('snake_game_scores.db')
+cursor = conn.cursor()
+
+# Vytvoření tabulky pro skóre, pokud neexistuje
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS scores (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    score INTEGER NOT NULL
+)
+''')
+conn.commit()
+
+# Funkce pro uložení skóre do databáze
+def save_score_to_db(score):
+    """Uloží skóre do databáze."""
+    cursor.execute('INSERT INTO scores (score) VALUES (?)', (score,))
+    conn.commit()
+
+# Funkce pro načtení nejlepších skóre
+def get_top_scores(limit=3):
+    """Načte nejlepší skóre z databáze."""
+    cursor.execute('SELECT score FROM scores ORDER BY score DESC LIMIT ?', (limit,))
+    return [row[0] for row in cursor.fetchall()]
 
 def draw_text(text, font, color, x, y):
     text_surface = font.render(text, True, color)
@@ -66,12 +89,11 @@ def main_menu():
                     return
 
 def update_best_scores(score):
-    global best_scores
-    best_scores.append(score)
-    best_scores = sorted(best_scores, reverse=True)[:3]  # Udržujeme pouze tři nejlepší skóre
+    save_score_to_db(score)  # Uloží skóre do databáze
+    return get_top_scores()  # Načte nejlepší skóre z databáze
 
 def game_over_screen(score):
-    update_best_scores(score)  # Aktualizace nejlepšího skóre
+    best_scores = update_best_scores(score)  # Aktualizace skóre v databázi
 
     font = pygame.font.SysFont('comicsansms', 30)
     while True:
@@ -79,7 +101,7 @@ def game_over_screen(score):
         draw_text("Game Over!", font, red, window_x // 2, window_y // 6)
         draw_text(f"Score: {score}", font, yellow, window_x // 2, window_y // 4)
         
-        # Zobrazení tří nejlepších skóre
+        # Zobrazení nejlepších skóre
         draw_text("Best Scores:", font, white, window_x // 2, window_y // 3)
         for i, best_score in enumerate(best_scores):
             draw_text(f"{i+1}. {best_score}", font, yellow, window_x // 2, window_y // 3 + (i+1) * 30)
@@ -93,20 +115,18 @@ def game_over_screen(score):
                 quit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
-                    return  # Restartuje hru
+                    return
                 if event.key == pygame.K_q:
                     pygame.quit()
                     quit()
-# Přidání proměnné pro zlaté jablko
-golden_fruit_position = None
-golden_fruit_spawn = False
-golden_fruit_timer = 0
-golden_fruit_duration = 10  # Trvání efektu zlatého jablka (v sekundách)
-original_snake_speed = snake_speed  # Uložení původní rychlosti hada
 
-# Přidání proměnných pro životnost zlatého jablka
-golden_fruit_lifetime = 0  # Maximální doba existence zlatého jablka (v sekundách)
-golden_fruit_spawn_time = 0  # Čas, kdy bylo zlaté jablko vygenerováno
+def spawn_fruit(snake_body):
+    """Generuje pozici jablka tak, aby nebylo v těle hada."""
+    while True:
+        position = [random.randrange(3, (window_x // 10) - 3) * 10, 
+                    random.randrange(3, (window_y // 10) - 3) * 10]
+        if position not in snake_body:
+            return position
 
 def game_loop():
     global snake_speed
@@ -116,11 +136,11 @@ def game_loop():
         direction = 'RIGHT'
         change_to = direction
         
-        fruit_position = [random.randrange(3, (window_x//10) - 3) * 10, 
-                          random.randrange(3, (window_y//10) - 3) * 10]
+        fruit_position = spawn_fruit(snake_body)
         fruit_spawn = True
         score = 0
         
+        # Zlaté jablko
         golden_fruit_position = None
         golden_fruit_spawn = False
         golden_fruit_timer = 0
@@ -161,45 +181,43 @@ def game_loop():
             if direction == 'RIGHT':
                 snake_position[0] += 10
             
-            # Přidání nové hlavy hada
             snake_body.insert(0, list(snake_position))
             if snake_position == fruit_position:
-                if score > 30:
+                if score >= 30:
                     score += 10
-                    snake_body.extend([snake_body[-1]] * 10)  # Extend the snake by 10 segments
                 else:
                     score += 1
                 fruit_spawn = False
-
+            else:
+                snake_body.pop()
             
             if not fruit_spawn:
-                fruit_position = [random.randrange(3, (window_x//10) - 3) * 10, 
-                                  random.randrange(3, (window_y//10) - 3) * 10]
-            fruit_spawn = True
+                fruit_position = spawn_fruit(snake_body)
+                fruit_spawn = True
 
-            # Generování zlatého jablka (nižší šance, 5 %)
-            if not golden_fruit_spawn and random.randint(1, 1000) <= 10:  # 5% šance na zlaté jablko
-                golden_fruit_position = [random.randrange(3, (window_x//10) - 3) * 10, 
-                                         random.randrange(3, (window_y//10) - 3) * 10]
+            # Zlaté jablko - generování
+            if not golden_fruit_spawn and random.randint(1, 1000) <= 10:  # 1% šance
+                golden_fruit_position = spawn_fruit(snake_body)
                 golden_fruit_spawn = True
                 golden_fruit_spawn_time = time.time()
-                golden_fruit_lifetime = random.randint(5, 15)  # Životnost 5 až 15 sekund
+                golden_fruit_lifetime = random.randint(5, 15)
             
-            # Kontrola, zda zlaté jablko vypršelo
+            # Vypršení zlatého jablka
             if golden_fruit_spawn and time.time() - golden_fruit_spawn_time > golden_fruit_lifetime:
                 golden_fruit_spawn = False
             
-            # Kontrola, zda had snědl zlaté jablko
+            # Had snědl zlaté jablko
             if golden_fruit_spawn and snake_position == golden_fruit_position:
-                snake_speed += 10  # Zvýšení rychlosti hada
+                snake_speed += 10
                 golden_fruit_spawn = False
                 golden_fruit_timer = time.time()
-            
-            # Reset rychlosti po uplynutí trvání efektu zlatého jablka
+
+            # Reset rychlosti po vypršení efektu zlatého jablka
             if golden_fruit_timer and time.time() - golden_fruit_timer > 10:
                 snake_speed = original_snake_speed
                 golden_fruit_timer = 0
-            
+
+            # Vykreslení herního prostředí
             game_window.fill(black)
             draw_background()
             draw_frame()
@@ -235,3 +253,6 @@ def game_loop():
 main_menu()
 while True:
     game_loop()
+
+# Uzavření připojení k databázi při ukončení programu
+conn.close()
