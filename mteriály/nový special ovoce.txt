@@ -1,0 +1,50 @@
+Definujte nové ovoce – Vytvořte proměnné pro jejich pozice a vlastnosti.
+
+Spawn logika – Náhodně generujte nové ovoce podobně jako klasické jablko.
+
+Kolize hada s novým ovocem – Pokud had ovoce sní, aplikujte efekt (např. zvýšení skóre, zpomalení hada, zkrácení těla).
+
+Vykreslení nového ovoce – Přidejte kreslení do herního okna.
+
+Například:
+
+Modré ovoce: Dává +5 bodů.
+
+Fialové ovoce: Zpomaluje hada.
+
+Černé ovoce: Zkracuje hadovo tělo
+
+
+
+
+blue_fruit_position = None
+blue_fruit_spawn = False
+purple_fruit_position = None
+purple_fruit_spawn = False
+black_fruit_position = None
+black_fruit_spawn = False
+
+if not blue_fruit_spawn and random.randint(1, 500) == 1:  
+    blue_fruit_position = spawn_fruit(snake_body)
+    blue_fruit_spawn = True
+
+if not purple_fruit_spawn and random.randint(1, 700) == 1:
+    purple_fruit_position = spawn_fruit(snake_body)
+    purple_fruit_spawn = True
+
+if not black_fruit_spawn and random.randint(1, 1000) == 1:
+    black_fruit_position = spawn_fruit(snake_body)
+    black_fruit_spawn = True
+
+if snake_position == blue_fruit_position:
+    score += 5
+    blue_fruit_spawn = False
+
+if snake_position == purple_fruit_position:
+    snake_speed = max(5, snake_speed - 5)  # Zpomalení hada
+    purple_fruit_spawn = False
+
+if snake_position == black_fruit_position:
+    if len(snake_body) > 3:
+        snake_body = snake_body[:-3]  # Zkrácení hada
+    black_fruit_spawn = False

@@ -1,0 +1,30 @@
+Definujte proměnnou pro herní oblast
+
+Přidejte proměnnou border_size, která určuje hranice.
+
+Při určitém skóre ji zvětšete, čímž se herní prostor zmenší.
+
+Aktualizujte herní logiku
+
+Pokud had narazí na tuto novou hranici, hra končí.
+
+Vykreslete novou oblast
+
+Zobrazte vizuálně zmenšené hranice.
+
+
+
+
+border_size = 0  # Počáteční hranice
+
+if score >= 500 and border_size < 20:
+    border_size += 20
+if score >= 1000 and border_size < 40:
+    border_size += 20
+if score >= 1500 and border_size < 60:
+    border_size += 20
+
+# Ověření kolize se zmenšenou hranicí
+if snake_position[0] < 20 + border_size or snake_position[0] >= window_x - 20 - border_size or \
+   snake_position[1] < 20 + border_size or snake_position[1] >= window_y - 20 - border_size:
+    game_over_screen(score)
